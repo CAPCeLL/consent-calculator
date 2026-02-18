@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あはき同意書 有効期限計算システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .radio-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .results {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .result-card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .result-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-note {
+            font-size: 14px;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+        
+        .info-card {
+            background: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-card h3 {
+            color: #2196F3;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .info-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-card li {
+            color: #555;
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .info-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2196F3;
+            font-weight: bold;
+        }
+        
+        .warning-card {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .warning-card h3 {
+            color: #ff9800;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .warning-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .result-value {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 あはき同意書 有効期限計算システム</h1>
+        <p class="subtitle">同意日を入力して、有効期限と再同意取得推奨日を確認しましょう</p>
+        
+        <div class="input-section">
+            <div class="form-group">
+                <label for="consentType">施術の種類を選択してください</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="acupuncture" name="consentType" value="acupuncture" checked>
+                        <label for="acupuncture">はり・きゅう / マッサージ</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="manipulation" name="consentType" value="manipulation">
+                        <label for="manipulation">変形徒手矯正術</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="isInitial">同意区分を選択してください</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="initial" name="isInitial" value="true">
+                        <label for="initial">初回の同意</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="renewal" name="isInitial" value="false" checked>
+                        <label for="renewal">再同意</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" id="consentDateGroup">
+                <label for="consentDate">同意日を入力してください</label>
+                <input type="date" id="consentDate" required>
+            </div>
+            
+            <div class="form-group" id="firstTreatmentGroup" style="display: none;">
+                <label for="firstTreatmentDate">初療年月日を入力してください</label>
+                <input type="date" id="firstTreatmentDate">
+            </div>
+            
+            <button class="calculate-btn" onclick="calculate()">計算する</button>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="result-card">
+                <h2>📅 有効期限</h2>
+                <div class="result-value" id="expiryDate">-</div>
+                <div class="result-note" id="expiryNote">-</div>
+            </div>
+            
+            <div class="result-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h2>⏰ 次回再同意取得推奨月</h2>
+                <div class="result-value" id="renewalDate">-</div>
+                <div class="result-note" id="renewalNote">-</div>
+            </div>
+            
+            <div class="info-card">
+                <h3>📋 重要なポイント</h3>
+                <ul id="importantPoints"></ul>
+            </div>
+            
+            <div class="warning-card" id="warningCard" style="display: none;">
+                <h3>⚠️ 注意事項</h3>
+                <p id="warningText"></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 初回同意のラジオボタンの状態に応じて初療年月日の入力欄を表示/非表示
+        document.querySelectorAll('input[name="isInitial"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const firstTreatmentGroup = document.getElementById('firstTreatmentGroup');
+                if (this.value === 'true') {
+                    firstTreatmentGroup.style.display = 'block';
+                } else {
+                    firstTreatmentGroup.style.display = 'none';
+                }
+            });
+        });
+        
+        function calculate() {
+            const consentType = document.querySelector('input[name="consentType"]:checked').value;
+            const isInitial = document.querySelector('input[name="isInitial"]:checked').value === 'true';
+            const consentDateStr = document.getElementById('consentDate').value;
+            const firstTreatmentDateStr = document.getElementById('firstTreatmentDate').value;
+            
+            if (!consentDateStr) {
+                alert('同意日を入力してください');
+                return;
+            }
+            
+            if (isInitial && !firstTreatmentDateStr) {
+                alert('初回の同意の場合は、初療年月日を入力してください');
+                return;
+            }
+            
+            const consentDate = new Date(consentDateStr);
+            const firstTreatmentDate = isInitial ? new Date(firstTreatmentDateStr) : null;
+            
+            let expiryDate, renewalDate, expiryNote, renewalNote, importantPoints, warningText;
+            
+            if (consentType === 'manipulation') {
+                // 変形徒手矯正術の場合
+                expiryDate = new Date(consentDate);
+                expiryDate.setMonth(expiryDate.getMonth() + 1);
+                expiryDate.setDate(expiryDate.getDate() - 1);
+                
+                // 再同意推奨月：有効期限の月
+                renewalDate = new Date(expiryDate);
+                
+                expiryNote = '同意日から1ヶ月間有効です';
+                renewalNote = '期限内（この月中）に再同意を取得してください';
+                
+                importantPoints = [
+                    '変形徒手矯正術の有効期間は1ヶ月間です',
+                    '期限切れ後はマッサージのみ有効となります',
+                    '月末が同意日の場合、期限のずれに注意してください'
+                ];
+                
+                // 月末チェック
+                const lastDayOfMonth = new Date(consentDate.getFullYear(), consentDate.getMonth() + 1, 0).getDate();
+                if (consentDate.getDate() === lastDayOfMonth) {
+                    warningText = `月末（${consentDate.getDate()}日）が同意日のため、期限が${expiryDate.getDate()}日までとなります。月をまたぐ期間で変形徒手矯正術が算定できない日が発生しますのでご注意ください。`;
+                }
+                
+            } else {
+                // はり・きゅう / マッサージの場合
+                let baseDate = consentDate;
+                
+                // 初回の同意の場合
+                if (isInitial) {
+                    // 同意日と初療日が1ヶ月以上空いているかチェック
+                    const daysDiff = (firstTreatmentDate - consentDate) / (1000 * 60 * 60 * 24);
+                    
+                    if (daysDiff >= 30) {
+                        // 1ヶ月以上空いている場合は同意日から起算
+                        baseDate = consentDate;
+                        warningText = `同意日と初療年月日が1ヶ月以上（${Math.floor(daysDiff)}日）離れているため、同意日から起算しています。`;
+                    } else {
+                        // 通常は初療日から起算
+                        baseDate = firstTreatmentDate;
+                    }
+                }
+                
+                const day = baseDate.getDate();
+                
+                if (day <= 15) {
+                    // 1～15日の場合：5ヶ月後の末日
+                    expiryDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 6, 0);
+                    expiryNote = `${isInitial ? '初療' : '同意'}日が1～15日のため、5ヶ月後の月末まで有効`;
+                } else {
+                    // 16～末日の場合：6ヶ月後の末日
+                    expiryDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + 7, 0);
+                    expiryNote = `${isInitial ? '初療' : '同意'}日が16日以降のため、6ヶ月後の月末まで有効`;
+                }
+                
+                // 再同意推奨月：有効期限の月
+                renewalDate = new Date(expiryDate);
+                renewalNote = 'この月中に再同意を取得してください（月初に取得すると管理がしやすくなります）';
+                
+                importantPoints = [
+                    'はり・きゅう・マッサージの有効期間は6ヶ月間です',
+                    '再同意は有効期限内に取得する必要があります',
+                    '有効期限の月の初旬に取得すると管理がしやすくなります'
+                ];
+                
+                if (isInitial) {
+                    importantPoints.unshift('初回の同意は初療年月日から起算されます');
+                }
+            }
+            
+            // 結果表示
+            document.getElementById('expiryDate').textContent = formatDate(expiryDate);
+            document.getElementById('expiryNote').textContent = expiryNote;
+            document.getElementById('renewalDate').textContent = formatMonth(renewalDate);
+            document.getElementById('renewalNote').textContent = renewalNote;
+            
+            const pointsList = document.getElementById('importantPoints');
+            pointsList.innerHTML = '';
+            importantPoints.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point;
+                pointsList.appendChild(li);
+            });
+            
+            const warningCard = document.getElementById('warningCard');
+            if (warningText) {
+                document.getElementById('warningText').textContent = warningText;
+                warningCard.style.display = 'block';
+            } else {
+                warningCard.style.display = 'none';
+            }
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            const weekday = weekdays[date.getDay()];
+            
+            return `${year}年${month}月${day}日（${weekday}）`;
+        }
+        
+        function formatMonth(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            
+            return `${year}年${month}月`;
+        }
+    </script>
+</body>
+</html>
